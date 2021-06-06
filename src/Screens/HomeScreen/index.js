@@ -10,10 +10,12 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import styles from './styles';
+import EpisodeCard from '../../Components/EpisodeCard';
 
 const HomeScreen = ({navigation, route}) => {
   const [dataList, setDataList] = useState([]);
   const [isLoading, setisLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchEpisodeList = async () => {
     try {
@@ -35,11 +37,13 @@ const HomeScreen = ({navigation, route}) => {
         ...responseJsonP3.results,
       ]);
       setisLoading(false);
+      setRefreshing(false);
       return responseJson;
     } catch (error) {
       return null;
     }
   };
+
   useEffect(() => {
     fetchEpisodeList();
     setTimeout(() => {
@@ -48,17 +52,18 @@ const HomeScreen = ({navigation, route}) => {
   }, []);
   const renderItem = ({item}) => {
     return (
-      <TouchableOpacity
-        style={styles.container}
-        onPress={() => navigation.navigate('EpisodeInfo', item)}>
-        <Text style={styles.title}>
-          <Text style={styles.content}>Episode :</Text>
-          {item.episode}
-        </Text>
-        <Text>name:{item.name}</Text>
-        <Text>date:{item.air_date}</Text>
-      </TouchableOpacity>
+      <EpisodeCard
+        item={item}
+        episode={item.episode}
+        episodeName={item.name}
+        navigation={navigation}
+        airdate={item.air_date}
+      />
     );
+  };
+  const refreshHandler = () => {
+    setRefreshing(true);
+    fetchEpisodeList();
   };
   if (isLoading) {
     return (
@@ -73,6 +78,8 @@ const HomeScreen = ({navigation, route}) => {
           data={dataList}
           renderItem={renderItem}
           keyExtractor={item => item.id}
+          refreshing={refreshing}
+          onRefresh={refreshHandler}
         />
       </View>
     );
